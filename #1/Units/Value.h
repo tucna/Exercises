@@ -1,5 +1,7 @@
 #pragma once
 
+#include <iostream>
+
 template <int M, int K, int S>
 struct MksUnit
 {
@@ -54,6 +56,33 @@ using Frequency = Value<MksUnit<0, 0, -1>>;
 using Force = Value<MksUnit<1, 1, -2>>;
 using Pressure = Value<MksUnit<-1, 1, -2>>;
 using Momentum = Value<MksUnit<1, 1, -1>>;
+
+namespace Prefix
+{
+  constexpr long double kilo = 1000.0;
+  constexpr long double mili = 0.001;
+};
+
+std::ostream& operator<< (std::ostream& oStream, const Length& rhs) noexcept
+{
+  oStream << rhs.getMagnitude() << " m";
+  return oStream;
+}
+
+constexpr Length operator"" _m(long double magnitude)
+{
+  return Length(magnitude);
+}
+
+constexpr Length operator"" _km(long double magnitude)
+{
+  return Length(magnitude * Prefix::kilo);
+}
+
+constexpr Length operator"" _mm(long double magnitude)
+{
+  return Length(magnitude * Prefix::mili);
+}
 
 constexpr Force operator"" _N(long double magnitude)
 {
