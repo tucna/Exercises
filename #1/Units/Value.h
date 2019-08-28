@@ -63,6 +63,7 @@ namespace Prefix
   constexpr long double mili = 0.001;
 };
 
+// Length related operators
 std::ostream& operator<< (std::ostream& oStream, const Length& rhs) noexcept
 {
   oStream << rhs.getMagnitude() << " m";
@@ -84,6 +85,7 @@ constexpr Length operator"" _mm(long double magnitude)
   return Length(magnitude * Prefix::mili);
 }
 
+// ...
 constexpr Force operator"" _N(long double magnitude)
 {
   return Force(magnitude);
