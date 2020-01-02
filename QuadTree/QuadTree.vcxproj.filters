@@ -26,5 +26,8 @@
     <ClInclude Include="src\quadtree.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="engine\tPixelGameEngine.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -35,8 +35,13 @@ public:
 
     DrawBoundaries(quadtree);
 
+    Quadtree::Point selected = { GetMouseX(), GetMouseY() };
+
     std::vector<Quadtree::Point> closest;
-    quadtree->Retrieve(closest, m_objects[0]);
+    quadtree->Retrieve(closest, selected);
+
+    for (Quadtree::Point& object : closest)
+      Draw(object.x, object.y, tDX::BLUE);
 
     return true;
   }
