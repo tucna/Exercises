@@ -29,7 +29,7 @@ public:
   void Insert(Point object);
   void Clear();
 
-  /*std::vector<Point>&*/ void Retrieve(std::vector<Point>& returnObjects, Point object);
+  void Retrieve(std::vector<Point>& returnObjects, Point object);
 
   const Rectangle& GetBoundaries() const { return m_boundaries; }
 
@@ -39,7 +39,7 @@ private:
   void Split();
   Node GetNode(const Point& object);
 
-  static constexpr uint16_t m_maxObjects = 2;
+  static constexpr uint16_t m_maxObjects = 4;
   static constexpr uint16_t m_maxLevels = 5;
 
   uint16_t m_level;

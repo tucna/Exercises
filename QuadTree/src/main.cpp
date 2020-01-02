@@ -25,15 +25,20 @@ public:
 
   bool OnUserUpdate(float fElapsedTime) override
   {
+    DrawBoundaries(quadtree);
+
     quadtree->Clear();
+
+    tDX::HWButton leftM = GetMouse(0);
+
+    if (leftM.bPressed)
+      m_objects.push_back({static_cast<uint16_t>(GetMouseX()), static_cast<uint16_t>(GetMouseY())});
 
     for (Quadtree::Point& object : m_objects)
     {
       Draw(object.x, object.y, tDX::RED);
       quadtree->Insert(object);
     }
-
-    DrawBoundaries(quadtree);
 
     Quadtree::Point selected = { GetMouseX(), GetMouseY() };
 
