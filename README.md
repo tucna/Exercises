@@ -1,2 +1,4 @@
 # Exercises
-1. Units - solution for handling of different units using type rich programming.
+*Units* - various units handling using type rich programming.
+
+*QuadTree* - quad tree applied on the collision detection
