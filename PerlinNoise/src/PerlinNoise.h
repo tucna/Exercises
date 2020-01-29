@@ -14,14 +14,14 @@ public:
   float GetValue(float x, float y, float z = 0);
 
 private:
-  static double Fade(double t) noexcept { return t * t * t * (t * (t * 6 - 15) + 10); }
-  static double Lerp(double t, double a, double b) noexcept { return a + t * (b - a); }
-  static double Grad(std::uint8_t hash, double x, double y, double z) noexcept
+  static float Fade(float t) noexcept { return t * t * t * (t * (t * 6 - 15) + 10); }
+  static float Lerp(float t, float a, float b) noexcept { return a + t * (b - a); }
+  static float Grad(std::uint8_t hash, float x, float y, float z) noexcept
   {
     const std::uint8_t h = hash & 15;
-    // Convert lower 4 bits of hash into 12 gradient directions
-    const double u = h < 8 ? x : y;
-    const double v = h < 4 ? y : h == 12 || h == 14 ? x : z;
+
+    const float u = h < 8 ? x : y;
+    const float v = h < 4 ? y : h == 12 || h == 14 ? x : z;
     return ((h & 1) == 0 ? u : -u) + ((h & 2) == 0 ? v : -v);
   }
 
