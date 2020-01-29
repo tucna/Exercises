@@ -1,9 +1,10 @@
 # Exercises
 ## Units
+<p>
 <img align="left" width="200" height="200" src="doc/units.png">
 
 Handling of the various SI units using type rich programming.
-
+</p>
 ## QuadTree
 <img align="left" width="200" height="200" src="doc/quad.png">
 
