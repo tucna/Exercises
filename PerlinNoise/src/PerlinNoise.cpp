@@ -6,7 +6,8 @@
 
 using namespace std;
 
-PerlinNoise::PerlinNoise(std::uint32_t seed)
+PerlinNoise::PerlinNoise(std::uint32_t seed) :
+  m_frequency(0.1f)
 {
   iota(p.begin(), p.end(), 0);
   shuffle(p.begin(), p.begin() + 256, default_random_engine(seed));
@@ -15,6 +16,10 @@ PerlinNoise::PerlinNoise(std::uint32_t seed)
 
 float PerlinNoise::GetValue(float x, float y, float z)
 {
+  x *= m_frequency;
+  y *= m_frequency;
+  z *= m_frequency;
+
   const int32_t X = static_cast<int32_t>(floor(x)) & 255; // TUCNA 0xFF
   const int32_t Y = static_cast<int32_t>(floor(y)) & 255;
   const int32_t Z = static_cast<int32_t>(floor(z)) & 255;

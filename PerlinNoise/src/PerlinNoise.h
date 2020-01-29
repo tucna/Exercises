@@ -9,7 +9,9 @@ public:
   PerlinNoise(std::uint32_t seed);
   ~PerlinNoise() {}
 
-  float GetValue(float x, float y, float z);
+  void SetFrequency(float f) { m_frequency = f; }
+
+  float GetValue(float x, float y, float z = 0);
 
 private:
   static double Fade(double t) noexcept { return t * t * t * (t * (t * 6 - 15) + 10); }
@@ -24,5 +26,7 @@ private:
   }
 
   std::array<uint8_t, 512> p;
+
+  float m_frequency;
 };
 
