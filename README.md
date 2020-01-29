@@ -1,9 +1,13 @@
 # Exercises
 ## Units
-various units handling using type rich programming.
+<img align="left" width="200" height="200" src="doc/units.png">
+
+Handling of the various SI units using type rich programming.
 
 ## QuadTree
-quadtree algorithm plus its visualisation.
+<img align="left" width="200" height="200" src="doc/quad.png">
+
+Quadtree algorithm plus its visualisation and basic mouse control to add points.
 
 ## PerlinNoise
 <img align="left" width="200" height="200" src="doc/perlin.png">
