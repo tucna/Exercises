@@ -291,8 +291,6 @@ namespace tDX // tucna - DirectX
     virtual bool OnUserCreate();
     // Called every frame, and provides you with a time per frame value
     virtual bool OnUserUpdate(float fElapsedTime);
-    // Called every frame, just before Present
-    virtual bool OnUserUpdateEndFrame(float fElapsedTime);
     // Called once on application termination, so you can be a clean coder
     virtual bool OnUserDestroy();
 
@@ -345,6 +343,7 @@ namespace tDX // tucna - DirectX
     // Draws a line from (x1,y1) to (x2,y2)
     void DrawLine(int32_t x1, int32_t y1, int32_t x2, int32_t y2, Pixel p = tDX::WHITE, uint32_t pattern = 0xFFFFFFFF);
     void DrawLine(const tDX::vi2d& pos1, const tDX::vi2d& pos2, Pixel p = tDX::WHITE, uint32_t pattern = 0xFFFFFFFF);
+    void DrawLineClipped(float x1, float y1, float x2, float y2, const tDX::vf2d& clipWinPos, const tDX::vf2d& clipWinSize, Pixel p = tDX::WHITE);
     // Draws a circle located at (x,y) with radius
     void DrawCircle(int32_t x, int32_t y, int32_t radius, Pixel p = tDX::WHITE, uint8_t mask = 0xFF);
     void DrawCircle(const tDX::vi2d& pos, int32_t radius, Pixel p = tDX::WHITE, uint8_t mask = 0xFF);
@@ -377,10 +376,6 @@ namespace tDX // tucna - DirectX
     void Clear(Pixel p);
     // Resize the primary screen sprite
     void SetScreenSize(int w, int h);
-
-    HWND GetHWND() { return tDX_hWnd; }
-    ID3D11Device* GetDevice() { return m_d3dDevice.Get(); }
-    ID3D11DeviceContext* GetContext() { return m_d3dContext.Get(); }
 
   public: // Branding
     std::string sAppName;
@@ -499,7 +494,6 @@ namespace tDX // tucna - DirectX
 
   #define T_PGE_APPLICATION
   #include "olcPixelGameEngine.h"
-
 */
 
 #ifdef T_PGE_APPLICATION
@@ -697,10 +691,10 @@ namespace tDX
 
     // This check is too expensive
     //if (x >= 0 && x < width && y >= 0 && y < height)
-    {
+    //{
       pColData[y*width + x] = p;
       return true;
-    }
+    //}
     //else
     //  return false;
   }
@@ -1146,10 +1140,6 @@ namespace tDX
         m_d3dContext->UpdateSubresource(m_texture.Get(), 0, NULL, pDefaultDrawTarget->GetData(), pDefaultDrawTarget->width * 4, 0);
 
         m_d3dContext->DrawIndexed(6, 0, 0);
-
-        if (!OnUserUpdateEndFrame(fElapsedTime))
-          bActive = false;
-
         m_swapChain->Present(0, 0);
 
         // Update Title Bar
@@ -1305,6 +1295,99 @@ namespace tDX
   {
     fSubPixelOffsetX = ox * fPixelX;
     fSubPixelOffsetY = oy * fPixelY;
+  }
+
+  void PixelGameEngine::DrawLineClipped(float x1, float y1, float x2, float y2, const tDX::vf2d& clipWinPos, const tDX::vf2d& clipWinSize, Pixel p)
+  {
+    tDX::vf2d v1 = { x1, y1 };
+    tDX::vf2d v2 = { x2, y2 };
+
+    const char inside = 0; // 0000
+    const char left = 1;   // 0001
+    const char right = 2;  // 0010
+    const char bottom = 4; // 0100
+    const char top = 8;    // 1000
+
+    float xMax = clipWinPos.x + clipWinSize.x;
+    float xMin = clipWinPos.x;
+
+    float yMax = clipWinPos.y + clipWinSize.y;
+    float yMin = clipWinPos.y;
+
+    auto computeCode = [&](tDX::vf2d v)
+    {
+      char code = inside;
+
+      if (v.x < clipWinPos.x)
+        code |= left;
+      else if (v.x > xMax)
+        code |= right;
+      if (v.y < clipWinPos.y)
+        code |= bottom;
+      else if (v.y > yMax)
+        code |= top;
+
+      return code;
+    };
+
+    char code1 = computeCode(v1);
+    char code2 = computeCode(v2);
+
+    while (true)
+    {
+      if ((code1 == 0) && (code2 == 0)) // both inside
+      {
+        break;
+      }
+      else if (code1 & code2) // both outside
+      {
+        return;
+      }
+      else
+      {
+        float x, y;
+        char codeOut = code1 == 0 ? code2 : code1;
+
+        // y = y1 + slope * (x - x1),
+        // x = x1 + (1 / slope) * (y - y1)
+        if (codeOut & top) // above
+        {
+          x = x1 + (x2 - x1) * (yMax - y1) / (y2 - y1);
+          y = yMax;
+        }
+        else if (codeOut & bottom) // bellow
+        {
+          x = x1 + (x2 - x1) * (yMin - y1) / (y2 - y1);
+          y = yMin;
+        }
+        else if (codeOut & right) // right
+        {
+          y = y1 + (y2 - y1) * (xMax - x1) / (x2 - x1);
+          x = xMax;
+        }
+        else if (codeOut & left)
+        {
+          // point is to the left of rectangle
+          y = y1 + (y2 - y1) * (xMin - x1) / (x2 - x1);
+          x = xMin;
+        }
+
+        if (codeOut == code1)
+        {
+          v1.x = x;
+          v1.y = y;
+          code1 = computeCode(v1);
+        }
+        else
+        {
+          v2.x = x;
+          v2.y = y;
+          code2 = computeCode(v2);
+        }
+      }
+    };
+
+    DrawLine(v1, v2, p);
   }
 
   void PixelGameEngine::DrawLine(const tDX::vi2d& pos1, const tDX::vi2d& pos2, Pixel p, uint32_t pattern)
@@ -1470,8 +1553,13 @@ namespace tDX
 
   void PixelGameEngine::Clear(Pixel p)
   {
-    float color[4] = { (float)p.r, (float)p.g, (float)p.b, (float)p.a };
-    m_d3dContext->ClearRenderTargetView(m_renderTargetView.Get(), color);
+    int pixels = GetDrawTargetWidth() * GetDrawTargetHeight();
+    Pixel* m = GetDrawTarget()->GetData();
+    for (int i = 0; i < pixels; i++)
+      m[i] = p;
+#ifdef T_DBG_OVERDRAW
+    tDX::Sprite::nOverdrawCount += pixels;
+#endif
   }
 
   void PixelGameEngine::FillRect(const tDX::vi2d& pos, const tDX::vi2d& size, Pixel p)
@@ -1792,10 +1880,6 @@ namespace tDX
   {
     UNUSED(fElapsedTime);  return false;
   }
-  bool PixelGameEngine::OnUserUpdateEndFrame(float fElapsedTime)
-  {
-    UNUSED(fElapsedTime); return false;
-  }
   bool PixelGameEngine::OnUserDestroy()
   {
     return true;
@@ -2044,6 +2128,7 @@ namespace tDX
       swapChainDesc.SampleDesc.Quality = 0;
       swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
       swapChainDesc.BufferCount = backBufferCount;
+      //swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD; TUCNA
 
       DXGI_SWAP_CHAIN_FULLSCREEN_DESC fsSwapChainDesc = {};
       fsSwapChainDesc.Windowed = TRUE;
@@ -2130,7 +2215,6 @@ namespace tDX
   LRESULT CALLBACK PixelGameEngine::tDX_WindowEvent(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
   {
     static PixelGameEngine *sge;
-
     switch (uMsg)
     {
     case WM_CREATE:		sge = (PixelGameEngine*)((LPCREATESTRUCT)lParam)->lpCreateParams;	return 0;

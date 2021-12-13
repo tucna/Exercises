@@ -33,11 +33,6 @@ public:
     return true;
   }
 
-  bool OnUserUpdateEndFrame(float fElapsedTime) override
-  {
-    return true;
-  }
-
 private:
   PerlinNoise m_noise;
 };
