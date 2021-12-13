@@ -13,7 +13,7 @@ public:
 
   bool OnUserCreate() override
   {
-    quadtree = new Quadtree(0, { {0,0},{static_cast<uint16_t>(ScreenWidth() - 1),static_cast<uint16_t>(ScreenHeight() - 1) } });
+    m_quadtree = std::make_unique<Quadtree>(0, Quadtree::Rectangle({ {0,0},{static_cast<uint16_t>(ScreenWidth() - 1),static_cast<uint16_t>(ScreenHeight() - 1) } }));
 
     uint16_t numPoints = 90;
 
@@ -25,9 +25,9 @@ public:
 
   bool OnUserUpdate(float fElapsedTime) override
   {
-    DrawBoundaries(quadtree);
+    DrawBoundaries(*m_quadtree);
 
-    quadtree->Clear();
+    m_quadtree->Clear();
 
     tDX::HWButton leftM = GetMouse(0);
 
@@ -37,13 +37,13 @@ public:
     for (Quadtree::Point& object : m_objects)
     {
       Draw(object.x, object.y, tDX::RED);
-      quadtree->Insert(object);
+      m_quadtree->Insert(object);
     }
 
     Quadtree::Point selected = { GetMouseX(), GetMouseY() };
 
     std::vector<Quadtree::Point> closest;
-    quadtree->Retrieve(closest, selected);
+    m_quadtree->Retrieve(closest, selected);
 
     for (Quadtree::Point& object : closest)
       Draw(object.x, object.y, tDX::BLUE);
@@ -52,24 +52,23 @@ public:
   }
 
 private:
-  void DrawBoundaries(Quadtree* node)
+  void DrawBoundaries(Quadtree& node)
   {
-    const std::array<Quadtree*, 4>& nodes = node->GetNodes();
+    const std::array<std::shared_ptr<Quadtree>, 4>& nodes = node.GetNodes();
 
     if (!nodes[0])
       return;
 
-    for (Quadtree* node : nodes)
+    for (const std::shared_ptr<Quadtree>& node : nodes)
     {
       const Quadtree::Rectangle& rect = node->GetBoundaries();
 
       DrawRect(rect.topLeft.x, rect.topLeft.y, rect.Width(), rect.Height(), tDX::GREY);
-      DrawBoundaries(node);
+      DrawBoundaries(*node);
     }
   }
 
-  Quadtree* quadtree;
-
+  std::unique_ptr<Quadtree> m_quadtree;
   std::vector<Quadtree::Point> m_objects;
 };
 

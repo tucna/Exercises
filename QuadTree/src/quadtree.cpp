@@ -51,30 +51,18 @@ void Quadtree::Clear()
 {
   m_objects.clear();
 
-  for (Quadtree* node : m_nodes)
+  for (std::shared_ptr<Quadtree>& node : m_nodes)
   {
     if (node)
     {
       node->Clear();
-      //delete node;
+      node = nullptr;
     }
   }
-
-  /* tucna
-  if (m_nodes[UpLeft]) delete m_nodes[UpLeft];
-  if (m_nodes[UpRight]) delete m_nodes[UpRight];
-  if (m_nodes[DownLeft]) delete m_nodes[DownLeft];
-  if (m_nodes[DownRight]) delete m_nodes[DownRight];
-  */
 }
 
 void Quadtree::Split()
 {
-  if (m_boundaries.downRight.x < m_boundaries.topLeft.x)
-  {
-    int i = 120;
-  }
-
   uint16_t x = m_boundaries.topLeft.x;
   uint16_t y = m_boundaries.topLeft.y;
   uint16_t widthHalf = m_boundaries.Width() / 2;
@@ -84,10 +72,10 @@ void Quadtree::Split()
   Point m = { x + widthHalf, y + heightHalf }; // middle
   Point br = { x + m_boundaries.Width(), y + m_boundaries.Height() }; // bottom right
 
-  m_nodes[UpLeft] = new Quadtree(m_level + 1, { tl, m });
-  m_nodes[UpRight] = new Quadtree(m_level + 1, { {m.x, tl.y}, {br.x, m.y} });
-  m_nodes[DownLeft] = new Quadtree(m_level + 1, { {tl.x, m.y}, {m.x,br.y} });
-  m_nodes[DownRight] = new Quadtree(m_level + 1, { m, br });
+  m_nodes[UpLeft] = std::make_shared<Quadtree>(m_level + 1, Rectangle({ tl, m }));
+  m_nodes[UpRight] = std::make_shared<Quadtree>(m_level + 1, Rectangle({ {m.x, tl.y}, {br.x, m.y} }));
+  m_nodes[DownLeft] = std::make_shared<Quadtree>(m_level + 1, Rectangle({ {tl.x, m.y}, {m.x,br.y} }));
+  m_nodes[DownRight] = std::make_shared<Quadtree>(m_level + 1, Rectangle({ m, br }));
 }
 
 Quadtree::Node Quadtree::GetNode(const Point& object)

@@ -2,6 +2,7 @@
 
 #include <array>
 #include <cstdint>
+#include <memory>
 #include <vector>
 
 class Quadtree
@@ -33,7 +34,7 @@ public:
 
   const Rectangle& GetBoundaries() const { return m_boundaries; }
 
-  const std::array<Quadtree*, 4>& GetNodes() { return m_nodes; };
+  std::array<std::shared_ptr<Quadtree>, 4>& GetNodes() { return m_nodes; };
 
 private:
   void Split();
@@ -41,9 +42,8 @@ private:
 
   static constexpr uint16_t m_maxObjects = 4;
   static constexpr uint16_t m_maxLevels = 5;
-
   uint16_t m_level;
-  std::array<Quadtree*, 4> m_nodes;
   Rectangle m_boundaries;
+  std::array<std::shared_ptr<Quadtree>, 4> m_nodes;
   std::vector<Point> m_objects;
 };
